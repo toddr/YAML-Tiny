@@ -20,7 +20,7 @@ use YAML::Tiny;
 #####################################################################
 # Testing that Perl::Smith config files work
 
-my $sample_file = catfile( 't', 'data', 'sample.yml' );
+my $sample_file = catfile( test_data_directory(), 'sample.yml' );
 my $sample      = load_ok( 'sample.yml', $sample_file, 500 );
 
 yaml_ok(
@@ -59,7 +59,5 @@ Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338.
 END_TEXT
 	} ],
 	'sample.yml',
-	nosyck => 1,
+	# nosyck => 1,
 );
-
-exit(0);
