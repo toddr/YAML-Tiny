@@ -586,6 +586,7 @@ sub LoadFile {
 BEGIN {
 	eval {
 		require Scalar::Util;
+		Scalar::Util->can('refaddr') or die("Scalar::Util is too old");
 	};
 	if ( $@ ) {
 		# Failed to load Scalar::Util
