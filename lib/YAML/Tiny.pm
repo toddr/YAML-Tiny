@@ -326,13 +326,20 @@ sub _read_hash {
 		}
 
 		# Get the key
-		unless ( $lines->[0] =~ s/^\s*([^\'\" ][^\n]*?)\s*:(\s+|$)// ) {
+        my $key;
+        if($lines->[0] =~ s/^\s*"([^"]*[^\\])":(\s+|$)//) {
+            $key = $1; # double Quoted <=
+            $key =~ s/\\n/\n/msg;
+        } elsif($lines->[0] =~ s/^\s*\'([^']*[^\\])\':(\s+|$)//) {
+            $key = $1; # single Quoted <=
+        } elsif ( $lines->[0] =~ s/^\s*([^\'\" ][^\n]*?)\s*:(\s+|$)// ) {
+            $key = $1; # Regular support
+        } else { # Unsupported.
 			if ( $lines->[0] =~ /^\s*[?\'\"]/ ) {
 				croak("YAML::Tiny does not support a feature in line '$lines->[0]'");
 			}
 			croak("YAML::Tiny failed to classify line '$lines->[0]'");
 		}
-		my $key = $1;
 
 		# Do we have a value?
 		if ( length $lines->[0] ) {
@@ -486,6 +493,12 @@ sub _write_hash {
 	my @lines  = ();
 	foreach my $name ( sort keys %$hash ) {
 		my $el   = $hash->{$name};
+        if(defined $name && !is_valid_plain($name)) {
+            Test::More::diag("special: $name");
+            $name =~ s/"/\\"/msg;
+            $name =~ s/\n/\\n/msg;
+            $name = "\"$name\"";
+  		}
 		my $line = ('  ' x $indent) . "$name:";
 		my $type = ref $el;
 		if ( ! $type ) {
@@ -516,6 +529,19 @@ sub _write_hash {
 	}
 
 	@lines;
+}
+
+# Check whether or not a scalar should be emitted as an plain scalar.
+sub is_valid_plain {
+    return 0 unless length $_[0];
+    # refer to YAML::Loader::parse_inline_simple()
+    return 0 if $_[0] =~ /^[\s\{\[\~\`\'\"\!\@\#\>\|\%\&\?\*\^]/;
+    return 0 if $_[0] =~ /[\{\[\]\},]/;
+    return 0 if $_[0] =~ /[:\-\?]\s/;
+    return 0 if $_[0] =~ /\s#/;
+    return 0 if $_[0] =~ /\:(\s|$)/;
+    return 0 if $_[0] =~ /[\s\|\>]$/;
+    return 1;
 }
 
 # Set error

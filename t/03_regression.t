@@ -10,7 +10,7 @@ BEGIN {
 
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
-use Test::More tests(37, 0, 11);
+use Test::More tests(39, 0, 11); # yaml_oks, load_oks, singles
 use YAML::Tiny qw{
 	Load     Dump
 	LoadFile DumpFile
@@ -53,7 +53,24 @@ yaml_ok(
 	'hash_indented',
 );
 
+#####################################################################
+# Support for quoted hash keys
 
+# Hash indented
+yaml_ok(
+      "---\n"
+    . "  \">=\": foo\n",
+    [ { '>=' => "foo" } ],
+    'hash_double_quote',
+);
+
+# Hash key new line
+yaml_ok(
+      "---\n"
+    . qq{  "foo\\n": bar\n},
+    [ { "foo\n" => "bar" } ],
+    'hash_newline_double_quote',
+);
 
 
 
